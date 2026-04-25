@@ -11,14 +11,17 @@ import { Habit, DayProgress } from '../types';
 export interface CyberGridProps {
   habit: Habit;
   onToggle: (date: string) => void;
+  dates: string[];
 }
 
-export const CyberGrid: React.FC<CyberGridProps> = ({ habit, onToggle }) => {
+export const CyberGrid: React.FC<CyberGridProps> = ({ habit, onToggle, dates }) => {
   const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   
-  // We want to map the 7 days of progress to the grid
-  // Habit.progress is already 7 days
-  const displayProgress = habit.progress.slice(-7);
+  // Map our dates to progress entries
+  const displayProgress = dates.map(date => {
+    const entry = habit.progress.find(p => p.date === date);
+    return entry || { date, completed: false };
+  });
   
   return (
     <div className="grid grid-cols-7 gap-3 mt-4">

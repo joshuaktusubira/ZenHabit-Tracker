@@ -82,14 +82,19 @@ export class HabitManager {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return null;
 
-    const day = habit.progress.find(d => d.date === date);
-    if (day) {
-      day.completed = !day.completed;
-      habit.streak = this.calculateStreak(habit);
-      this.save();
-      return { ...habit };
+    let day = habit.progress.find(d => d.date === date);
+    if (!day) {
+      // If date doesn't exist, create it (e.g. for future planning or deep history)
+      day = { date, completed: false };
+      habit.progress.push(day);
+      // Sort progress to maintain order
+      habit.progress.sort((a, b) => a.date.localeCompare(b.date));
     }
-    return null;
+    
+    day.completed = !day.completed;
+    habit.streak = this.calculateStreak(habit);
+    this.save();
+    return { ...habit };
   }
 
   public deleteHabit(habitId: string) {
