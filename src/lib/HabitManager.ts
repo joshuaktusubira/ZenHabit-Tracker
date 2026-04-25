@@ -82,6 +82,12 @@ export class HabitManager {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return null;
 
+    const today = new Date().toISOString().split('T')[0];
+    if (date !== today) {
+      console.warn('Strict validation: Can only toggle today\'s progress.');
+      return { ...habit }; // Return unchanged
+    }
+
     let day = habit.progress.find(d => d.date === date);
     if (!day) {
       // If date doesn't exist, create it (e.g. for future planning or deep history)

@@ -16,6 +16,7 @@ import { Flame, Calendar, Plus, BarChart3, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabitName, setNewHabitName] = useState('');
   const [toast, setToast] = useState<string | null>(null);
@@ -62,6 +63,7 @@ export default function App() {
       manager.setUser(parsedUser.id);
       setHabits(manager.getHabits());
     }
+    setIsLoading(false);
   }, [manager]);
 
   const handleLogin = (newUser: User) => {
@@ -119,6 +121,26 @@ export default function App() {
     manager.updateHabitGoal(habitId, newGoal);
     setHabits(manager.getHabits());
   }, [manager]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-violet-accent rounded-2xl flex items-center justify-center animate-pulse">
+            <BarChart3 size={24} className="text-white" />
+          </div>
+          <div className="h-1 w-24 bg-violet-accent/20 rounded-full overflow-hidden">
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: '100%' }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="h-full w-full bg-violet-accent"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
@@ -193,7 +215,7 @@ export default function App() {
                       </div>
                     </div>
                     <h2 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95]">
-                      System <br />
+                      Habit <br />
                       <span className="text-text/40 italic">Overview.</span>
                     </h2>
                   </div>

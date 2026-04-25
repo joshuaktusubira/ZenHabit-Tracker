@@ -136,18 +136,20 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete,
         
         <div className="flex items-center gap-2">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onToggle(habit.id, todayDate)}
+            whileHover={weekOffset === 0 ? { scale: 1.05 } : {}}
+            whileTap={weekOffset === 0 ? { scale: 0.95 } : {}}
+            disabled={weekOffset !== 0}
+            onClick={() => weekOffset === 0 && onToggle(habit.id, todayDate)}
             className={`
               p-2.5 rounded-xl border transition-all duration-300 flex items-center justify-center
               ${isCompletedToday 
                 ? 'bg-violet-accent border-violet-accent text-white shadow-[0_0_15px_rgba(143,0,255,0.4)]' 
                 : 'bg-white/5 border-border text-text-muted hover:border-violet-accent/50 hover:text-violet-accent'
               }
+              ${weekOffset !== 0 ? 'cursor-not-allowed opacity-30 grayscale-[0.5]' : 'cursor-pointer'}
             `}
             id={`toggle-today-${habit.id}`}
-            title={isCompletedToday ? "Mark as Incomplete" : "Mark as Complete"}
+            title={weekOffset === 0 ? (isCompletedToday ? "Mark as Incomplete" : "Mark as Complete") : "Locked: View Only"}
           >
             {isCompletedToday ? <CheckCircle2 size={20} /> : <Circle size={20} />}
           </motion.button>
