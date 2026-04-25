@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, Flame, ChevronUp, ChevronDown, CheckCircle2, Circle } from 'lucide-react';
 import { Habit } from '../types';
 import { CyberGrid } from './CyberGrid';
-import { Heatmap } from './Heatmap';
 
 interface HabitCardProps {
   habit: Habit;
@@ -104,12 +103,9 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete,
         </div>
       </div>
 
-      <CyberGrid habit={habit} onToggle={(date) => onToggle(habit.id, date)} />
-      
-      <Heatmap 
-        progress={habit.progress.slice(-56)} 
-        label="Habit Consistency (8 Weeks)" 
-      />
+      <div className="flex justify-center">
+        <CyberGrid habit={habit} onToggle={(date) => onToggle(habit.id, date)} />
+      </div>
       
       {isGoalMet && (
         <motion.div
