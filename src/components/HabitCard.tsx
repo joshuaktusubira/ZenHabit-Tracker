@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Flame, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, Flame, ChevronUp, ChevronDown, CheckCircle2, Circle } from 'lucide-react';
 import { Habit } from '../types';
 import { CyberGrid } from './CyberGrid';
 import { Heatmap } from './Heatmap';
@@ -19,6 +19,9 @@ interface HabitCardProps {
 
 export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete, onUpdateGoal }) => {
   const isGoalMet = habit.streak >= habit.targetGoal;
+  const todayDate = new Date().toISOString().split('T')[0];
+  const todayProgress = habit.progress.find(p => p.date === todayDate);
+  const isCompletedToday = todayProgress?.completed || false;
 
   return (
     <motion.div
@@ -27,15 +30,16 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete,
       animate={{ 
         opacity: 1, 
         y: 0,
-        borderColor: isGoalMet ? 'rgba(143, 0, 255, 0.4)' : 'var(--border-color)'
+        borderColor: isGoalMet ? 'rgba(143, 0, 255, 0.4)' : 'var(--border-color)',
+        backgroundColor: isCompletedToday ? 'rgba(143, 0, 255, 0.03)' : 'var(--glass-bg)'
       }}
       exit={{ opacity: 0, scale: 0.95 }}
       className={`glass-card w-full relative group ${isGoalMet ? 'shadow-[0_0_30px_rgba(143,0,255,0.15)]' : ''}`}
       id={`habit-card-${habit.id}`}
     >
       <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-xl font-bold tracking-tight text-text leading-tight uppercase italic">
+        <div className="flex-1">
+          <h3 className={`text-xl font-bold tracking-tight text-text leading-tight uppercase italic transition-all duration-300 ${isCompletedToday ? 'opacity-50 line-through' : 'opacity-100'}`}>
             {habit.name}
           </h3>
           <div className="flex items-center gap-1.5 mt-2">
@@ -72,18 +76,40 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete,
           </div>
         </div>
         
-        <button
-          onClick={() => onDelete(habit.id)}
-          className="p-2 rounded-xl hover:bg-red-500/10 text-text-muted hover:text-red-500 transition-all border border-transparent hover:border-red-500/20"
-          id={`delete-${habit.id}`}
-        >
-          <Trash2 size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onToggle(habit.id, todayDate)}
+            className={`
+              p-2.5 rounded-xl border transition-all duration-300 flex items-center justify-center
+              ${isCompletedToday 
+                ? 'bg-violet-accent border-violet-accent text-white shadow-[0_0_15px_rgba(143,0,255,0.4)]' 
+                : 'bg-white/5 border-border text-text-muted hover:border-violet-accent/50 hover:text-violet-accent'
+              }
+            `}
+            id={`toggle-today-${habit.id}`}
+            title={isCompletedToday ? "Mark as Incomplete" : "Mark as Complete"}
+          >
+            {isCompletedToday ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+          </motion.button>
+
+          <button
+            onClick={() => onDelete(habit.id)}
+            className="p-2.5 rounded-xl hover:bg-red-500/10 text-text-muted hover:text-red-500 transition-all border border-transparent hover:border-red-500/10"
+            id={`delete-${habit.id}`}
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
       </div>
 
       <CyberGrid habit={habit} onToggle={(date) => onToggle(habit.id, date)} />
       
-      <Heatmap progress={habit.progress} />
+      <Heatmap 
+        progress={habit.progress.slice(-56)} 
+        label="Habit Consistency (8 Weeks)" 
+      />
       
       {isGoalMet && (
         <motion.div

@@ -97,11 +97,51 @@ export class HabitManager {
     this.save();
   }
 
+  public getGlobalStreak(): number {
+    if (this.habits.length === 0) return 0;
+    
+    // Get all unique dates from all habits
+    const allDates = Array.from(new Set(this.habits.flatMap(h => h.progress.map(p => p.date)))).sort((a, b) => b.localeCompare(a));
+    
+    let streak = 0;
+    for (const date of allDates) {
+      const anyCompleted = this.habits.some(h => 
+        h.progress.some(p => p.date === date && p.completed)
+      );
+      
+      if (anyCompleted) {
+        streak++;
+      } else {
+        // If it's today and not completed yet, don't break the streak?
+        // Actually, simple logic: first gap breaks it.
+        if (streak > 0) break;
+        // if streak is 0 and it's today, we check if they did anything yesterday
+      }
+    }
+    return streak;
+  }
+
+  public getAggregateProgress(): DayProgress[] {
+    if (this.habits.length === 0) return this.generateInitialProgress();
+
+    const allDates = Array.from(new Set(this.habits.flatMap(h => h.progress.map(p => p.date)))).sort((a, b) => a.localeCompare(b));
+    
+    return allDates.map(date => {
+      const anyCompleted = this.habits.some(h => 
+        h.progress.some(p => p.date === date && p.completed)
+      );
+      return {
+        date,
+        completed: anyCompleted
+      };
+    });
+  }
+
   private generateInitialProgress(): DayProgress[] {
     const progress: DayProgress[] = [];
     const today = new Date();
-    // 8 weeks = 56 days
-    for (let i = 55; i >= 0; i--) {
+    // 24 weeks = 168 days
+    for (let i = 167; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       progress.push({

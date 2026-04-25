@@ -5,7 +5,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, LogOut, Sun, Moon, Monitor, ChevronDown } from 'lucide-react';
+import { Settings, LogOut, Sun, Moon, Monitor, ChevronDown, BarChart2 } from 'lucide-react';
 import { Theme, User } from '../types';
 
 interface SettingsDropdownProps {
@@ -13,9 +13,10 @@ interface SettingsDropdownProps {
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
   onLogout: () => void;
+  onViewStats: () => void;
 }
 
-export const SettingsDropdown: React.FC<SettingsDropdownProps> = ({ user, theme, onThemeChange, onLogout }) => {
+export const SettingsDropdown: React.FC<SettingsDropdownProps> = ({ user, theme, onThemeChange, onLogout, onViewStats }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +66,22 @@ export const SettingsDropdown: React.FC<SettingsDropdownProps> = ({ user, theme,
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             className="absolute right-0 mt-3 w-64 glass-card p-4 z-50 border-violet-accent/20"
           >
+            <div className="mb-4">
+              <p className="text-[10px] font-bold tracking-[0.2em] text-text-muted uppercase mb-3 px-1">
+                Data Visualization
+              </p>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onViewStats();
+                }}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-violet-accent/10 border border-violet-accent/20 text-violet-accent font-bold transition-all hover:bg-violet-accent hover:text-white group"
+              >
+                <span className="text-xs uppercase tracking-widest">In-Depth Stats</span>
+                <BarChart2 size={16} className="transition-transform group-hover:scale-110" />
+              </button>
+            </div>
+
             <div className="mb-4">
               <p className="text-[10px] font-bold tracking-[0.2em] text-text-muted uppercase mb-3 px-1">
                 Appearance

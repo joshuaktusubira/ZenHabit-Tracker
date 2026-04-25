@@ -5,13 +5,14 @@
 
 import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, BarChart3, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { HabitManager } from './lib/HabitManager';
 import { Habit, User, Theme } from './types';
 import { HabitCard } from './components/HabitCard';
 import { Login } from './components/Login';
 import { SettingsDropdown } from './components/SettingsDropdown';
+import { StatisticsView } from './components/StatisticsView';
+import { Flame, Calendar, Plus, BarChart3, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -19,6 +20,7 @@ export default function App() {
   const [newHabitName, setNewHabitName] = useState('');
   const [toast, setToast] = useState<string | null>(null);
   const [manager] = useState(() => HabitManager.getInstance());
+  const [view, setView] = useState<'dashboard' | 'stats'>('dashboard');
   
   const [theme, setTheme] = useState<Theme>(() => {
     return (localStorage.getItem('zen_theme') as Theme) || 'system';
@@ -164,72 +166,122 @@ export default function App() {
             theme={theme} 
             onThemeChange={setTheme} 
             onLogout={handleLogout} 
+            onViewStats={() => setView('stats')}
           />
         </header>
 
         <main className="w-full">
-          {/* Dashboard Header */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div>
-              <p className="text-violet-accent text-xs font-bold tracking-[0.4em] uppercase mb-3 flex items-center gap-2">
-                <span className="w-8 h-[1px] bg-violet-accent/30" />
-                Hackathon Submission 2026
-              </p>
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95]">
-                Your Progress <br />
-                <span className="text-text/40 italic">Visualized.</span>
-              </h2>
-            </div>
-
-            <form onSubmit={handleAddHabit} className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              <input
-                type="text"
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                placeholder="Track a new ritual..."
-                className="bg-white/5 border border-border rounded-2xl px-6 py-4 focus:outline-none focus:border-violet-accent/50 focus:bg-white/10 transition-all w-full lg:w-80 text-text font-medium placeholder:text-text/20"
-                id="habit-input"
-              />
-              <button
-                type="submit"
-                className="bg-violet-accent hover:bg-violet-accent/80 text-white font-bold p-4 rounded-2xl shadow-[0_10px_20px_rgba(143,0,255,0.2)] transition-all active:scale-95 flex items-center justify-center gap-2 px-8"
-                id="add-habit-btn"
-              >
-                <Plus size={24} />
-                <span className="lg:hidden">ADD HABIT</span>
-              </button>
-            </form>
-          </div>
-
-          {/* Habit Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <AnimatePresence mode="popLayout">
-              {habits.map((habit) => (
-                <HabitCard
-                  key={habit.id}
-                  habit={habit}
-                  onToggle={handleToggleDay}
-                  onDelete={handleDeleteHabit}
-                  onUpdateGoal={handleUpdateGoal}
-                />
-              ))}
-            </AnimatePresence>
-
-            {habits.length === 0 && (
+          <AnimatePresence mode="wait">
+            {view === 'dashboard' ? (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="col-span-full py-32 text-center"
+                key="dashboard"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="w-full"
               >
-                <div className="glass-card inline-block p-16 max-w-sm border-dashed">
-                  <p className="text-text/30 text-xl font-medium tracking-tight">
-                    No rituals active. <br />
-                    <span className="text-violet-accent/50">Begin your journey above.</span>
-                  </p>
+                {/* Dashboard Header */}
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="px-3 py-1 rounded-full bg-violet-accent/10 border border-violet-accent/20 text-violet-accent text-[10px] font-bold tracking-[0.2em] uppercase">
+                        {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      </div>
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-bold tracking-[0.2em] uppercase">
+                        <Flame size={12} />
+                        GLOBAL STREAK: {manager.getGlobalStreak()}
+                      </div>
+                    </div>
+                    <h2 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95]">
+                      System <br />
+                      <span className="text-text/40 italic">Overview.</span>
+                    </h2>
+                  </div>
+
+                  {habits.length === 0 && (
+                    <form onSubmit={handleAddHabit} className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                      <input
+                        type="text"
+                        value={newHabitName}
+                        onChange={(e) => setNewHabitName(e.target.value)}
+                        placeholder="Track a new ritual..."
+                        className="bg-white/5 border border-border rounded-2xl px-6 py-4 focus:outline-none focus:border-violet-accent/50 focus:bg-white/10 transition-all w-full lg:w-80 text-text font-medium placeholder:text-text/20"
+                        id="habit-input-empty"
+                      />
+                      <button
+                        type="submit"
+                        className="bg-violet-accent hover:bg-violet-accent/80 text-white font-bold p-4 rounded-2xl shadow-[0_10px_20px_rgba(143,0,255,0.2)] transition-all active:scale-95 flex items-center justify-center gap-2 px-8"
+                        id="add-habit-btn-empty"
+                      >
+                        <Plus size={24} />
+                        <span className="lg:hidden">ADD HABIT</span>
+                      </button>
+                    </form>
+                  )}
                 </div>
+
+                {/* Habit Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                  <AnimatePresence mode="popLayout">
+                    {habits.map((habit) => (
+                      <HabitCard
+                        key={habit.id}
+                        habit={habit}
+                        onToggle={handleToggleDay}
+                        onDelete={handleDeleteHabit}
+                        onUpdateGoal={handleUpdateGoal}
+                      />
+                    ))}
+                  </AnimatePresence>
+
+                  {habits.length === 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="col-span-full py-32 text-center"
+                    >
+                      <div className="glass-card inline-block p-16 max-w-sm border-dashed">
+                        <p className="text-text/30 text-xl font-medium tracking-tight">
+                          No rituals active. <br />
+                          <span className="text-violet-accent/50">Begin your journey above.</span>
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
+                {habits.length > 0 && (
+                  <div className="flex justify-center mt-12 mb-24">
+                    <form onSubmit={handleAddHabit} className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl px-4">
+                      <input
+                        type="text"
+                        value={newHabitName}
+                        onChange={(e) => setNewHabitName(e.target.value)}
+                        placeholder="Add another ritual..."
+                        className="bg-white/5 border border-border rounded-2xl px-6 py-4 focus:outline-none focus:border-violet-accent/50 focus:bg-white/10 transition-all flex-1 text-text font-medium placeholder:text-text/20"
+                        id="habit-input-filled"
+                      />
+                      <button
+                        type="submit"
+                        className="bg-violet-accent hover:bg-violet-accent/80 text-white font-bold p-4 rounded-2xl shadow-[0_10px_20px_rgba(143,0,255,0.2)] transition-all active:scale-95 flex items-center justify-center gap-2 px-10"
+                        id="add-habit-btn-filled"
+                      >
+                        <Plus size={24} />
+                      </button>
+                    </form>
+                  </div>
+                )}
               </motion.div>
+            ) : (
+              <StatisticsView
+                key="stats"
+                habits={habits}
+                aggregateProgress={manager.getAggregateProgress()}
+                globalStreak={manager.getGlobalStreak()}
+                onBack={() => setView('dashboard')}
+              />
             )}
-          </div>
+          </AnimatePresence>
         </main>
 
         <footer className="mt-40 pb-12 border-t border-border pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-text/20 text-xs font-mono">
